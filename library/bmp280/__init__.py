@@ -12,7 +12,14 @@ class S16Adapter(Adapter):
     """Convert unsigned 16bit integer to signed."""
 
     def _decode(self, value):
-        return struct.unpack('>h', _int_to_bytes(value, 2))[0]
+        return struct.unpack('<h', _int_to_bytes(value, 2))[0]
+
+
+class U16Adapter(Adapter):
+    """Convert from bytes to an unsigned 16bit integer."""
+
+    def _decode(self, value):
+        return struct.unpack('<H', _int_to_bytes(value, 2))[0]
 
 
 class BMP280Calibration():
@@ -35,21 +42,21 @@ class BMP280Calibration():
 
     def compensate_temperature(self, raw_temperature):
         var1 = (raw_temperature / 16384.0 - self.dig_t1 / 1024.0) * self.dig_t2
-        var2 = ((raw_temperature / 131072.0 - self.dig_t1 / 8192.0) *
-                (raw_temperature / 131072.0 - self.dig_t1 / 8192.0) * self.dig_t3)
+        var2 = raw_temperature / 131072.0 - self.dig_t1 / 8192.0
+        var2 = var2 * var2 * self.dig_t3
         self.temperature_fine = (var1 + var2)
         return self.temperature_fine / 5120.0
 
     def compensate_pressure(self, raw_pressure):
         var1 = self.temperature_fine / 2.0 - 64000.0
         var2 = var1 * var1 * self.dig_p6 / 32768.0
-        var2 = var2 * var1 * self.dig_p5 * 2
+        var2 = var2 + var1 * self.dig_p5 * 2
         var2 = var2 / 4.0 + self.dig_p4 * 65536.0
         var1 = (self.dig_p3 * var1 * var1 / 524288.0 + self.dig_p2 * var1) / 524288.0
         var1 = (1.0 + var1 / 32768.0) * self.dig_p1
         pressure = 1048576.0 - raw_pressure
         pressure = (pressure - var2 / 4096.0) * 6250.0 / var1
-        var1 = self.dig_p6 * pressure * pressure / 2147483648.0
+        var1 = self.dig_p9 * pressure * pressure / 2147483648.0
         var2 = pressure * self.dig_p8 / 32768.0
         return pressure + (var1 + var2 + self.dig_p7) / 16.0
 
@@ -60,7 +67,7 @@ class BMP280:
         self._is_setup = False
         self._i2c_addr = i2c_addr
         self._i2c_dev = i2c_dev
-        self._bmp280 = Device([I2C_ADDRESS_GND, I2C_ADDRESS_VCC], bit_width=8, registers=(
+        self._bmp280 = Device([I2C_ADDRESS_GND, I2C_ADDRESS_VCC], i2c_dev=self._i2c_dev, bit_width=8, registers=(
             Register('CHIP_ID', 0xD0, fields=(
                 BitField('id', 0xFF),
             )),
@@ -112,10 +119,10 @@ class BMP280:
                 BitField('pressure', 0xFFFFF0000000),
             ), bit_width=48),
             Register('CALIBRATION', 0x88, fields=(
-                BitField('dig_t1', 0xFFFF << 16 * 11),                         # 0x88 0x89
+                BitField('dig_t1', 0xFFFF << 16 * 11, adapter=U16Adapter()),   # 0x88 0x89
                 BitField('dig_t2', 0xFFFF << 16 * 10, adapter=S16Adapter()),   # 0x8A 0x8B
                 BitField('dig_t3', 0xFFFF << 16 * 9, adapter=S16Adapter()),    # 0x8C 0x8D
-                BitField('dig_p1', 0xFFFF << 16 * 8),                          # 0x8E 0x8F
+                BitField('dig_p1', 0xFFFF << 16 * 8, adapter=U16Adapter()),    # 0x8E 0x8F
                 BitField('dig_p2', 0xFFFF << 16 * 7, adapter=S16Adapter()),    # 0x90 0x91
                 BitField('dig_p3', 0xFFFF << 16 * 6, adapter=S16Adapter()),    # 0x92 0x93
                 BitField('dig_p4', 0xFFFF << 16 * 5, adapter=S16Adapter()),    # 0x94 0x95
@@ -167,6 +174,8 @@ class BMP280:
             self.calibration.dig_p9 = CALIBRATION.get_dig_p9()
 
     def update_sensor(self):
+        self.setup()
+
         raw_temperature = self._bmp280.DATA.get_temperature()
         raw_pressure = self._bmp280.DATA.get_pressure()
 
