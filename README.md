@@ -1,4 +1,4 @@
-# BMP280 Temperature & Pressure Sensor
+# BMP280 Temperature, Pressure, & Altitude Sensor
 
 [![Build Status](https://travis-ci.com/pimoroni/bmp280-python.svg?branch=master)](https://travis-ci.com/pimoroni/bmp280-python)
 [![Coverage Status](https://coveralls.io/repos/github/pimoroni/bmp280-python/badge.svg?branch=master)](https://coveralls.io/github/pimoroni/bmp280-python?branch=master)
