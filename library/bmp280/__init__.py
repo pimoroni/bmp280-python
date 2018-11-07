@@ -180,7 +180,7 @@ class BMP280:
         raw_pressure = self._bmp280.DATA.get_pressure()
 
         self.temperature = self.calibration.compensate_temperature(raw_temperature)
-        self.pressure = self.calibration.compensate_pressure(raw_pressure)
+        self.pressure = self.calibration.compensate_pressure(raw_pressure) / 100.0
 
     def get_temperature(self):
         self.update_sensor()
@@ -189,3 +189,9 @@ class BMP280:
     def get_pressure(self):
         self.update_sensor()
         return self.pressure
+
+    def get_altitude(self, qnh=1013.25):
+        self.update_sensor()
+        pressure = self.get_pressure()
+        altitude = 44330.0 * (1.0 - pow(pressure / qnh, (1.0 / 5.255)))
+        return altitude
