@@ -1,10 +1,10 @@
-bmp280 Temperature & Pressure Sensor
-====================================
+BMP280 Temperature, Pressure, & Altitude Sensor
+===============================================
 
 |Build Status| |Coverage Status| |PyPi Package| |Python Versions|
 
-Suitable for measuring ambient temperature and barometric pressure, the
-bmp280 is a basic weather sensor.
+Suitable for measuring ambient temperature, barometric pressure, and
+altitude, the BMP280 is a basic weather sensor.
 
 Installing
 ==========
