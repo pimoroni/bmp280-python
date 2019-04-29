@@ -19,3 +19,13 @@ def test_setup_mock_present():
     from bmp280 import BMP280
     bmp280 = BMP280()
     bmp280.setup()
+
+
+def test_setup_forced_mode():
+    from tools import SMBusFakeDevice
+    smbus = mock.Mock()
+    smbus.SMBus = SMBusFakeDevice
+    sys.modules['smbus'] = smbus
+    from bmp280 import BMP280
+    bmp280 = BMP280()
+    bmp280.setup(mode="forced")
