@@ -3,6 +3,9 @@ from i2cdevice import Device, Register, BitField, _int_to_bytes
 from i2cdevice.adapter import LookupAdapter, Adapter
 import struct
 
+
+__version__ = '0.0.3'
+
 CHIP_ID = 0x58
 I2C_ADDRESS_GND = 0x76
 I2C_ADDRESS_VCC = 0x77

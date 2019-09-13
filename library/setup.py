@@ -39,7 +39,7 @@ classifiers = ['Development Status :: 4 - Beta',
 
 setup(
     name='bmp280',
-    version='0.0.2',
+    version='0.0.3',
     author='Philip Howard',
     author_email='phil@pimoroni.com',
     description="""Python library for the BMP280 temperature and pressure sensor""",
@@ -49,5 +49,5 @@ setup(
     url='http://www.pimoroni.com',
     classifiers=classifiers,
     packages=['bmp280'],
-    install_requires=['i2cdevice>=0.0.4']
+    install_requires=['i2cdevice>=0.0.6']
 )
