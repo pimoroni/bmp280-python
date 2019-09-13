@@ -3,6 +3,9 @@ from i2cdevice import Device, Register, BitField, _int_to_bytes
 from i2cdevice.adapter import LookupAdapter, Adapter
 import struct
 
+
+__version__ = '0.0.3'
+
 CHIP_ID = 0x58
 I2C_ADDRESS_GND = 0x76
 I2C_ADDRESS_VCC = 0x77
@@ -39,6 +42,15 @@ class BMP280Calibration():
         self.dig_p9 = 0
 
         self.temperature_fine = 0
+
+    def set_from_namedtuple(self, value):
+        # Iterate through a tuple supplied by i2cdevice
+        # and copy its values into the class attributes
+        for key in self.__dict__.keys():
+            try:
+                setattr(self, key, getattr(value, key))
+            except AttributeError:
+                pass
 
     def compensate_temperature(self, raw_temperature):
         var1 = (raw_temperature / 16384.0 - self.dig_t1 / 1024.0) * self.dig_t2
@@ -142,45 +154,30 @@ class BMP280:
         self._bmp280.select_address(self._i2c_addr)
 
         try:
-            if self._bmp280.CHIP_ID.get_id() != CHIP_ID:
-                raise RuntimeError("Unable to find bmp280 on 0x{:02x}, CHIP_ID returned {:02x}".format(self._i2c_addr, self._bmp280.CHIP_ID.get_id()))
+            chip = self._bmp280.get('CHIP_ID')
+            if chip.id != CHIP_ID:
+                raise RuntimeError("Unable to find bmp280 on 0x{:02x}, CHIP_ID returned {:02x}".format(self._i2c_addr, chip.id))
         except IOError:
             raise RuntimeError("Unable to find bmp280 on 0x{:02x}, IOError".format(self._i2c_addr))
 
-        with self._bmp280.CTRL_MEAS as CTRL_MEAS:
-            CTRL_MEAS.set_mode('normal')
-            CTRL_MEAS.set_osrs_t(16)
-            CTRL_MEAS.set_osrs_p(16)
-            CTRL_MEAS.write()
+        self._bmp280.set('CTRL_MEAS',
+                         mode='normal',
+                         osrs_t=16,
+                         osrs_p=16)
 
-        with self._bmp280.CONFIG as CONFIG:
-            CONFIG.set_t_sb(500)
-            CONFIG.set_filter(2)
-            CONFIG.write()
+        self._bmp280.set('CONFIG',
+                         t_sb=500,
+                         filter=2)
 
-        with self._bmp280.CALIBRATION as CALIBRATION:
-            self.calibration.dig_t1 = CALIBRATION.get_dig_t1()
-            self.calibration.dig_t2 = CALIBRATION.get_dig_t2()
-            self.calibration.dig_t3 = CALIBRATION.get_dig_t3()
-
-            self.calibration.dig_p1 = CALIBRATION.get_dig_p1()
-            self.calibration.dig_p2 = CALIBRATION.get_dig_p2()
-            self.calibration.dig_p3 = CALIBRATION.get_dig_p3()
-            self.calibration.dig_p4 = CALIBRATION.get_dig_p4()
-            self.calibration.dig_p5 = CALIBRATION.get_dig_p5()
-            self.calibration.dig_p6 = CALIBRATION.get_dig_p6()
-            self.calibration.dig_p7 = CALIBRATION.get_dig_p7()
-            self.calibration.dig_p8 = CALIBRATION.get_dig_p8()
-            self.calibration.dig_p9 = CALIBRATION.get_dig_p9()
+        self.calibration.set_from_namedtuple(self._bmp280.get('CALIBRATION'))
 
     def update_sensor(self):
         self.setup()
 
-        raw_temperature = self._bmp280.DATA.get_temperature()
-        raw_pressure = self._bmp280.DATA.get_pressure()
+        raw = self._bmp280.get('DATA')
 
-        self.temperature = self.calibration.compensate_temperature(raw_temperature)
-        self.pressure = self.calibration.compensate_pressure(raw_pressure) / 100.0
+        self.temperature = self.calibration.compensate_temperature(raw.temperature)
+        self.pressure = self.calibration.compensate_pressure(raw.pressure) / 100.0
 
     def get_temperature(self):
         self.update_sensor()
