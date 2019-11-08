@@ -2,6 +2,7 @@
 from i2cdevice import Device, Register, BitField, _int_to_bytes
 from i2cdevice.adapter import LookupAdapter, Adapter
 import struct
+import time
 
 
 __version__ = '0.0.3'
@@ -146,12 +147,16 @@ class BMP280:
             ), bit_width=192)
         ))
 
-    def setup(self):
+    def setup(self, mode='normal', temperature_oversampling=16, pressure_oversampling=16, temperature_standby=500):
         if self._is_setup:
             return
         self._is_setup = True
 
         self._bmp280.select_address(self._i2c_addr)
+        self._mode = mode
+
+        if mode == "forced":
+            mode = "sleep"
 
         try:
             chip = self._bmp280.get('CHIP_ID')
@@ -161,18 +166,24 @@ class BMP280:
             raise RuntimeError("Unable to find bmp280 on 0x{:02x}, IOError".format(self._i2c_addr))
 
         self._bmp280.set('CTRL_MEAS',
-                         mode='normal',
-                         osrs_t=16,
-                         osrs_p=16)
+                         mode=mode,
+                         osrs_t=temperature_oversampling,
+                         osrs_p=pressure_oversampling)
 
         self._bmp280.set('CONFIG',
-                         t_sb=500,
+                         t_sb=temperature_standby,
                          filter=2)
 
         self.calibration.set_from_namedtuple(self._bmp280.get('CALIBRATION'))
 
     def update_sensor(self):
         self.setup()
+
+        if self._mode == "forced":
+            # Trigger a reading in forced mode and wait for result
+            self._bmp280.set("CTRL_MEAS", mode="forced")
+            while self._bmp280.get("STATUS").measuring:
+                time.sleep(0.001)
 
         raw = self._bmp280.get('DATA')
 
