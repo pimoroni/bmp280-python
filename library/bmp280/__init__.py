@@ -198,9 +198,15 @@ class BMP280:
         self.update_sensor()
         return self.pressure
 
-    def get_altitude(self, qnh=1013.25):
+    def get_altitude(self, qnh=1013.25, manual_temperature=None):
+        # qnh = pressure at sea level where the readings are being taken.  
+        # The temperature should be the outdoor temperature. 
+        # Use the manual_temperature variable if temperature adjustments are required.
         self.update_sensor()
         pressure = self.get_pressure()
-        temperature = self.get_temperature()
+        if manual_temperature is None:
+            temperature = self.get_temperature()
+        else:
+            temperature = manual_temperature
         altitude = ((pow((qnh / pressure), (1.0 / 5.257)) - 1) * (temperature + 273.15)) / 0.0065
         return altitude
