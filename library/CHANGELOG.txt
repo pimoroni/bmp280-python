@@ -1,3 +1,11 @@
+0.0.4
+-----
+
+* Add support for forced-mode on demand i2c
+* Change altitude formula
+* Allow manual temperature compensation for altitude
+* Allow oversampling settings to be configured on `__init__`
+
 0.0.3
 -----
 

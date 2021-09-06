@@ -5,7 +5,7 @@ import struct
 import time
 
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 CHIP_ID = 0x58
 I2C_ADDRESS_GND = 0x76
@@ -199,8 +199,8 @@ class BMP280:
         return self.pressure
 
     def get_altitude(self, qnh=1013.25, manual_temperature=None):
-        # qnh = pressure at sea level where the readings are being taken.  
-        # The temperature should be the outdoor temperature. 
+        # qnh = pressure at sea level where the readings are being taken.
+        # The temperature should be the outdoor temperature.
         # Use the manual_temperature variable if temperature adjustments are required.
         self.update_sensor()
         pressure = self.get_pressure()
