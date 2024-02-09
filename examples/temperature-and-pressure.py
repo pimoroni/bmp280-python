@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import time
-from bmp280 import BMP280
+
 from smbus2 import SMBus
+
+from bmp280 import BMP280
 
 print("""temperature-and-pressure.py - Displays the temperature and pressure.
 

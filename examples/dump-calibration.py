@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-from bmp280 import BMP280
 from smbus2 import SMBus
+
+from bmp280 import BMP280
 
 print("""dump-calibration.py - Dumps calibration data.
 

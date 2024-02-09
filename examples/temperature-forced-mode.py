@@ -1,7 +1,8 @@
 import time
-from smbus2 import SMBus
-from bmp280 import BMP280
 
+from smbus2 import SMBus
+
+from bmp280 import BMP280
 
 bus = SMBus(1)
 bmp280 = BMP280(i2c_dev=bus)
