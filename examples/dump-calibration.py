@@ -15,6 +15,6 @@ bmp280 = BMP280(i2c_dev=SMBus(1))
 bmp280.setup()
 
 for key in dir(bmp280.calibration):
-    if key.startswith('dig_'):
+    if key.startswith("dig_"):
         value = getattr(bmp280.calibration, key)
-        print('{} = {}'.format(key, value))
+        print(f"{key} = {value}")

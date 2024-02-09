@@ -19,11 +19,13 @@ Press Ctrl+C to exit!
 bus = SMBus(1)
 bmp280 = BMP280(i2c_dev=bus)
 
+
 # Gets the CPU temperature in degrees C
 def get_cpu_temperature():
-    process = Popen(['vcgencmd', 'measure_temp'], stdout=PIPE)
+    process = Popen(["vcgencmd", "measure_temp"], stdout=PIPE)
     output, _error = process.communicate()
-    return float(output[output.index('=') + 1:output.rindex("'")])
+    return float(output[output.index("=") + 1 : output.rindex("'")])
+
 
 factor = 1.2  # Smaller numbers adjust temp down, vice versa
 smooth_size = 10  # Dampens jitter due to rapid CPU temp changes
@@ -41,6 +43,6 @@ while True:
     raw_temp = bmp280.get_temperature()
     comp_temp = raw_temp - ((smoothed_cpu_temp - raw_temp) / factor)
 
-    print("Compensated temperature: {:05.2f} *C".format(comp_temp))
+    print(f"Compensated temperature: {comp_temp:05.2f} *C")
 
     time.sleep(1.0)

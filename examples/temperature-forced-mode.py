@@ -15,5 +15,5 @@ bmp280.setup(mode="forced")
 
 while True:
     temperature = bmp280.get_temperature()
-    print('{:05.2f}*C'.format(temperature))
+    print("{temperature:05.2f}*C")
     time.sleep(1)
