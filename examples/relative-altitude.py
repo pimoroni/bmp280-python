@@ -2,11 +2,7 @@
 
 import time
 from bmp280 import BMP280
-
-try:
-    from smbus2 import SMBus
-except ImportError:
-    from smbus import SMBus
+from smbus2 import SMBus
 
 print("""relative-altitude.py - Calculates relative altitude from pressure.
 

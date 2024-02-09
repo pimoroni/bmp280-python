@@ -2,11 +2,7 @@
 
 import time
 from bmp280 import BMP280
-
-try:
-    from smbus2 import SMBus
-except ImportError:
-    from smbus import SMBus
+from smbus2 import SMBus
 
 print("""temperature-and-pressure.py - Displays the temperature and pressure.
 

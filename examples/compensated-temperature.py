@@ -3,11 +3,7 @@
 import time
 from bmp280 import BMP280
 from subprocess import PIPE, Popen
-
-try:
-    from smbus2 import SMBus
-except ImportError:
-    from smbus import SMBus
+from smbus2 import SMBus
 
 print("""compensated-temperature.py - Use the CPU temperature to compensate temperature
 readings from the BMP280 sensor. Method adapted from Initial State's Enviro pHAT

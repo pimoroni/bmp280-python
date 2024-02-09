@@ -1,8 +1,5 @@
 import time
-try:
-    from smbus2 import SMBus
-except ImportError:
-    from smbus import SMBus
+from smbus2 import SMBus
 from bmp280 import BMP280
 
 
