@@ -1,5 +1,6 @@
 import time
-from bmp280 import _bmp280, CHIP_ID
+
+from bmp280 import CHIP_ID, _bmp280
 
 print('0x{:02x} {}'.format(_bmp280.CHIP_ID.get_id(), 'ok' if _bmp280.CHIP_ID.get_id() == CHIP_ID else 'err'))
 
