@@ -47,7 +47,7 @@ path = "bmp280/__init__.py"
 
 [tool.hatch.build]
 include = [
-    "PROJECT_NAME",
+    "bmp280",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
