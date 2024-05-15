@@ -6,7 +6,7 @@ import time
 from i2cdevice import BitField, Device, Register, _int_to_bytes
 from i2cdevice.adapter import Adapter, LookupAdapter
 
-__version__ = "0.0.4"
+__version__ = "1.0.0"
 
 CHIP_ID = 0x58
 I2C_ADDRESS_GND = 0x76
