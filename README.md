@@ -18,4 +18,3 @@ Latest/development library from GitHub:
 * `git clone https://github.com/pimoroni/bmp280-python`
 * `cd bmp280-python`
 * `./install.sh --unstable`
-
