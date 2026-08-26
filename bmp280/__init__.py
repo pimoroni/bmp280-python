@@ -1,5 +1,6 @@
 """BMP280 Driver."""
 
+import contextlib
 import struct
 import time
 
@@ -48,11 +49,9 @@ class BMP280Calibration:
     def set_from_namedtuple(self, value):
         # Iterate through a tuple supplied by i2cdevice
         # and copy its values into the class attributes
-        for key in self.__dict__.keys():
-            try:
+        for key in self.__dict__:
+            with contextlib.suppress(AttributeError):
                 setattr(self, key, getattr(value, key))
-            except AttributeError:
-                pass
 
     def compensate_temperature(self, raw_temperature):
         var1 = (raw_temperature / 16384.0 - self.dig_t1 / 1024.0) * self.dig_t2
@@ -163,8 +162,8 @@ class BMP280:
             chip = self._bmp280.get("CHIP_ID")
             if chip.id != CHIP_ID:
                 raise RuntimeError(f"Unable to find bmp280 on 0x{self._i2c_addr:02x}, CHIP_ID returned {chip.id:02x}")
-        except IOError:
-            raise RuntimeError(f"Unable to find bmp280 on 0x{self._i2c_addr:02x}, IOError")
+        except OSError:
+            raise RuntimeError(f"Unable to find bmp280 on 0x{self._i2c_addr:02x}, IOError") from None
 
         self._bmp280.set("CTRL_MEAS",
                          mode=mode,
@@ -205,9 +204,6 @@ class BMP280:
         # Use the manual_temperature variable if temperature adjustments are required.
         self.update_sensor()
         pressure = self.get_pressure()
-        if manual_temperature is None:
-            temperature = self.get_temperature()
-        else:
-            temperature = manual_temperature
+        temperature = self.get_temperature() if manual_temperature is None else manual_temperature
         altitude = ((pow((qnh / pressure), (1.0 / 5.257)) - 1) * (temperature + 273.15)) / 0.0065
         return altitude

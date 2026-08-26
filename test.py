@@ -38,7 +38,7 @@ try:
         raw_temp = _bmp280.DATA.get_temperature()
         raw_pres = _bmp280.DATA.get_pressure()
 
-        print('0b{:020b}'.format(raw_temp))
+        print(f'0b{raw_temp:020b}')
 
         var1 = (raw_temp / 16384.0 - dig_t1 / 1024.0) * dig_t2
         var2 = (raw_temp / 131072.0 - dig_t1 / 8192.0) * (raw_temp / 131072.0 - dig_t1 / 8192.0) * dig_t3
