@@ -1,3 +1,10 @@
+1.0.1
+-----
+
+* Fix: forced mode could wait forever for a measurement that never completes
+* Fix: first reading in normal mode was taken before the first conversion finished
+* Fix: get_altitude took three measurements instead of one
+
 1.0.0
 -----
 

@@ -7,7 +7,7 @@ import time
 from i2cdevice import BitField, Device, Register, _int_to_bytes
 from i2cdevice.adapter import Adapter, LookupAdapter
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 CHIP_ID = 0x58
 I2C_ADDRESS_GND = 0x76
@@ -154,6 +154,8 @@ class BMP280:
 
         self._bmp280.select_address(self._i2c_addr)
         self._mode = mode
+        self._temperature_oversampling = temperature_oversampling
+        self._pressure_oversampling = pressure_oversampling
 
         if mode == "forced":
             mode = "sleep"
@@ -176,13 +178,26 @@ class BMP280:
 
         self.calibration.set_from_namedtuple(self._bmp280.get("CALIBRATION"))
 
+        # In normal mode the first conversion is still in flight, and DATA holds reset values.
+        if self._mode == "normal":
+            time.sleep(self._measurement_time_ms() / 1000.0)
+
+    def _measurement_time_ms(self):
+        """Worst-case measurement time for the configured oversampling, per the datasheet."""
+        return (1.25
+                + (2.3 * self._temperature_oversampling)
+                + (2.3 * self._pressure_oversampling) + 0.575)
+
     def update_sensor(self):
         self.setup()
 
         if self._mode == "forced":
             # Trigger a reading in forced mode and wait for result
             self._bmp280.set("CTRL_MEAS", mode="forced")
+            timeout = time.time() + (self._measurement_time_ms() * 4) / 1000.0
             while self._bmp280.get("STATUS").measuring:
+                if time.time() > timeout:
+                    raise RuntimeError("Timed out waiting for BMP280 measurement to complete")
                 time.sleep(0.001)
 
         raw = self._bmp280.get("DATA")
@@ -203,7 +218,6 @@ class BMP280:
         # The temperature should be the outdoor temperature.
         # Use the manual_temperature variable if temperature adjustments are required.
         self.update_sensor()
-        pressure = self.get_pressure()
-        temperature = self.get_temperature() if manual_temperature is None else manual_temperature
-        altitude = ((pow((qnh / pressure), (1.0 / 5.257)) - 1) * (temperature + 273.15)) / 0.0065
+        temperature = self.temperature if manual_temperature is None else manual_temperature
+        altitude = ((pow((qnh / self.pressure), (1.0 / 5.257)) - 1) * (temperature + 273.15)) / 0.0065
         return altitude

@@ -100,3 +100,48 @@ def test_altitude():
     bmp280.calibration = BMP280Calibration()
 
     assert round(bmp280.get_altitude(), 4) == round(TEST_ALT_CMP, 4)
+
+
+def test_forced_mode_times_out():
+    import pytest
+    from tools import SMBusFakeDevice
+
+    from bmp280 import BMP280
+    dev = SMBusFakeDevice(1)
+
+    bmp280 = BMP280(i2c_dev=dev)
+    bmp280.setup(mode="forced")
+
+    # Leave the measuring bit set so the conversion never appears to complete
+    dev.regs[0xf3] = 0b00001000
+
+    with pytest.raises(RuntimeError):
+        bmp280.update_sensor()
+
+
+def test_altitude_takes_one_measurement():
+    from calibration import BMP280Calibration
+    from tools import SMBusFakeDevice
+
+    from bmp280 import BMP280
+    dev = SMBusFakeDevice(1)
+
+    dev.regs[0xf9] = (TEST_PRES_RAW & 0x0000F) << 4
+    dev.regs[0xf8] = (TEST_PRES_RAW & 0x00FF0) >> 4
+    dev.regs[0xf7] = (TEST_PRES_RAW & 0xFF000) >> 12
+
+    bmp280 = BMP280(i2c_dev=dev)
+    bmp280.setup()
+    bmp280.calibration = BMP280Calibration()
+
+    original = bmp280.update_sensor
+    calls = []
+
+    def counted():
+        calls.append(1)
+        return original()
+
+    bmp280.update_sensor = counted
+    bmp280.get_altitude()
+
+    assert len(calls) == 1
