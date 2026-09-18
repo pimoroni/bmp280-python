@@ -3,11 +3,15 @@
 import contextlib
 import struct
 import time
+from importlib.metadata import PackageNotFoundError, version
 
 from i2cdevice import BitField, Device, Register, _int_to_bytes
 from i2cdevice.adapter import Adapter, LookupAdapter
 
-__version__ = "1.0.1"
+try:
+    __version__ = version("bmp280")
+except PackageNotFoundError:
+    __version__ = "0.0.0"
 
 CHIP_ID = 0x58
 I2C_ADDRESS_GND = 0x76
